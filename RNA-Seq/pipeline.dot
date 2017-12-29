@@ -1,0 +1,28 @@
+digraph {
+
+    //rankdir="LR"
+
+    raw_data   [label="raw data"]
+    clean_data [label="clean data"]
+    bam_file   [label="sorted bam files"]
+    bigwig     [label="bigwig"]
+    count_res  [label="count_table/FPKM"]
+    de_res     [label="differential expression genes"]
+
+    qctrl    [shape=box, label="quality control"]
+    trimm    [shape=box, label="trimming"]
+    align    [shape=box, label="alignment and sort"]
+    count    [shape=box, label="count"] 
+    de_ana   [shape=box, label="differential analyze"]
+    down_ana [shape=box, label="downstream analyze"]
+
+    is_clean [shape=diamond, label="is clean?"]
+
+    raw_data -> qctrl -> is_clean;
+    is_clean -> trimm[label="N"];
+    is_clean -> align[label="Y"];
+    trimm -> clean_data -> align -> bam_file -> count -> count_res -> de_ana -> de_res -> down_ana;
+    bam_file -> bigwig;
+    count_res -> down_ana;
+
+}
