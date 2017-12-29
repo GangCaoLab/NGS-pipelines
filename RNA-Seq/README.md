@@ -36,12 +36,12 @@ The pipeline for RNA-Seq upstream data processing.
 ### MTB
 
 #### H37Ra
-* [fasta](ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/fasta/bacteria_13_collection/mycobacterium_tuberculosis_h37ra/dna/)
-* [gtf](ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/gtf/bacteria_13_collection/mycobacterium_tuberculosis_h37ra)
+* fasta (ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/fasta/bacteria_13_collection/mycobacterium_tuberculosis_h37ra/dna/)
+* gtf (ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/gtf/bacteria_13_collection/mycobacterium_tuberculosis_h37ra)
 
 #### H37Rv
-* [fasta](ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/)
-* [gtf](ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/gff3/bacteria_0_collection/mycobacterium_tuberculosis_h37rv)
+* fasta (ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/fasta/bacteria_0_collection/mycobacterium_tuberculosis_h37rv/dna/)
+* gtf (ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/gff3/bacteria_0_collection/mycobacterium_tuberculosis_h37rv)
 
 ## Commands and scripts usage example:
 

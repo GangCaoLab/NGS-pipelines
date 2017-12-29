@@ -71,12 +71,14 @@ echo "    INDEX_PREIFX: $idx_prefix"
 echo "    GTF: $gtf"
 echo "    aligner: $aligner"
 echo "    threads: $threads"
+echo "    pbs: $pbs"
 
 input_dir=${input_dir//\'/}
 idx_prefix=${idx_prefix//\'/}
 gtf=${gtf//\'/}
 aligner=${aligner//\'/}
 threads=${threads//\'/}
+pbs=${pbs//\'/}
 
 ## END PARSE ARG
 
