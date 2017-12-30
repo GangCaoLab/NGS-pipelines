@@ -19,7 +19,7 @@ OUTPUT: 1. sorted bam file
         3. bigwig file
 
 NOTE: 1. fastq should named as _R1.fastq.gz _R2.fastq.gz
-      2. This pipeline only for non-strand-specific library
+      2. This pipeline only for pair-end non-strand-specific library
 EOF
 }
 
@@ -81,6 +81,12 @@ threads=${threads//\'/}
 pbs=${pbs//\'/}
 
 ## END PARSE ARG
+
+
+if [ ! -d $input_dir ]; then
+    echo "[error input dir not exist]"
+    exit 1
+fi
 
 
 function align {
@@ -212,7 +218,7 @@ function pipe-pbs {
 
 
     function qqsub {
-        qsub -V -l nodes=1:ppn=$threads -d $PWD $@
+        qsub -V -l nodes=1:ppn="$threads" -d $PWD $@
     }
 
     qid_align=$(echo "align $id $input_dir $aligner $idx_prefix $threads" | qqsub -N ALIGN_$id)
@@ -230,7 +236,7 @@ function main {
     # deploy tasks of all samples
     # 
 
-    for id in `ls $input_dir | tr ' ' '\n' | sed 's/.fastq.gz//g' | sed 's/_R1//' | sed 's/_R2//' | sort -u`;
+    for id in `ls $input_dir | grep fastq.gz | sed 's/.fastq.gz//g' | sed 's/_R1//' | sed 's/_R2//' | sort -u`;
     do
         echo sample id: $id
         if [ $pbs -eq 1 ]; then
