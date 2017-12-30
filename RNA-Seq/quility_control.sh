@@ -19,6 +19,7 @@ OUTPUT: 1. Fastqc report of raw data.
 
 NOTE: 1. fastq should named as _R1.fastq.gz _R2.fastq.gz
       2. This pipeline only for pair-end library
+      3. log stored in qc_trim_qc.log
 EOF
 }
 
@@ -32,7 +33,7 @@ if [ -z $trimmo_jar ]; then
 fi
 if [ -z $adapter_fa ]; then
     echo "must define variable adapter_fa firstly, use command:"
-    echo '$ export trimmo_jar="/path/to/adapter.fa"'
+    echo '$ export adapter_fa="/path/to/adapter.fa"'
     exit 1
 fi
 
@@ -113,17 +114,17 @@ function qc_trim_qc {
     r_r2=$raw_dir/"$id"_R2.fastq.gz
 
     # fastqc on raw data
-    fastqc -t $threads r_r1 -o $report_dir/raw
-    fastqc -t $threads r_r2 -o $report_dir/raw
+    fastqc -t $threads $r_r1 -o $report_dir/raw
+    fastqc -t $threads $r_r2 -o $report_dir/raw
 
     c_r1=$clean_dir/"$id"_R1.fastq.gz
-    c_r1=$clean_dir/"$id"_R2.fastq.gz
+    c_r2=$clean_dir/"$id"_R2.fastq.gz
 
     # trimm
     java -jar $trimmo_jar PE $r_r1 $r_r2 \
         $c_r1 $clean_dir/"id"_R1.unpair.fastq.gz \
         $c_r2 $clean_dir/"id"_R2.unpair.fastq.gz \
-        ILLUMINACLIP:$adapter_fa:3:30:10:1:TRUE LEADING:20 TRALING:20 SLIDINGWINDOW:4:15 \
+        ILLUMINACLIP:$adapter_fa:3:30:10:1:TRUE LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 \
         MINLEN:36 \
         -threads $threads
 
@@ -131,8 +132,8 @@ function qc_trim_qc {
     rm $clean_dir/"id"_R2.unpair.fastq.gz
 
     # fastqc on clean data
-    fastqc -t $threads c_r1 -o $report_dir/clean
-    fastqc -t $threads c_r2 -o $report_dir/clean
+    fastqc -t $threads $c_r1 -o $report_dir/clean
+    fastqc -t $threads $c_r2 -o $report_dir/clean
 }
 
 export -f qc_trim_qc
@@ -143,12 +144,12 @@ function main {
 
     for id in `ls $raw_dir | grep fastq.gz | sed 's/.fastq.gz//g' | sed 's/_R1//' | sed 's/_R2//' | sort -u`;
     do
-        if [ $pbs -qe 1 ]; then
+        if [ $pbs -eq 1 ]; then
             echo "run on pbs cluster"
-            echo "qc_trim_qc $id" | qsub -l nodes=1:ppn="$threads" -N QC_"$id"
+            echo "qc_trim_qc $id" | qsub -V -l nodes=1:ppn="$threads" -N QC_"$id"
         else
             echo "run on front end" 
-            qc_trim_qc $id
+            qc_trim_qc $id 2>> qc_trim_qc.log
         fi
     done
 

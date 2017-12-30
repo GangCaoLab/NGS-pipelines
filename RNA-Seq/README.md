@@ -32,6 +32,8 @@ The pipeline for RNA-Seq upstream data processing.
 * hg19 gtf file: Export from [UCSC hgTables](http://genome.ucsc.edu/cgi-bin/hgTables)
 
 ### Mouse
+* [mm10](http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/)
+* gtf: same to hg19
 
 ### MTB
 
