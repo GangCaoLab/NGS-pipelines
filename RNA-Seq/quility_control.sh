@@ -8,7 +8,7 @@ usage:
 $ export trimmo_jar="/path/to/trimmomatic.jar"
 $ export adapter_fa="/path/to/adapter.fa"
 $ quility_control RAW_DIR CLEAN_DIR QC_REPORT_DIR
-        [-t/--threads=THREADS]
+        [-t/--threads THREADS]
         [--pbs]
 
 INPUT: raw data: fastq.gz file.
@@ -77,11 +77,11 @@ echo "    QC_REPORT_DIR: $report_dir"
 echo "    threads: $threads"
 echo "    pbs: $pbs"
 
-raw_dir=${raw_dir//\'/}
-clean_dir=${clean_dir//\'/}
-report_dir=${report_dir//\'/}
-threads=${threads//\'/}
-pbs=${pbs//\'/}
+export raw_dir=${raw_dir//\'/}
+export clean_dir=${clean_dir//\'/}
+export report_dir=${report_dir//\'/}
+export threads=${threads//\'/}
+export pbs=${pbs//\'/}
 
 ## END PARSE ARG
 
@@ -122,14 +122,14 @@ function qc_trim_qc {
 
     # trimm
     java -jar $trimmo_jar PE $r_r1 $r_r2 \
-        $c_r1 $clean_dir/"id"_R1.unpair.fastq.gz \
-        $c_r2 $clean_dir/"id"_R2.unpair.fastq.gz \
+        $c_r1 $clean_dir/"$id"_R1.unpair.fastq.gz \
+        $c_r2 $clean_dir/"$id"_R2.unpair.fastq.gz \
         ILLUMINACLIP:$adapter_fa:3:30:10:1:TRUE LEADING:20 TRAILING:20 SLIDINGWINDOW:4:15 \
         MINLEN:36 \
         -threads $threads
 
-    rm $clean_dir/"id"_R1.unpair.fastq.gz
-    rm $clean_dir/"id"_R2.unpair.fastq.gz
+    rm $clean_dir/"$id"_R1.unpair.fastq.gz
+    rm $clean_dir/"$id"_R2.unpair.fastq.gz
 
     # fastqc on clean data
     fastqc -t $threads $c_r1 -o $report_dir/clean
@@ -146,7 +146,7 @@ function main {
     do
         if [ $pbs -eq 1 ]; then
             echo "run on pbs cluster"
-            echo "qc_trim_qc $id" | qsub -V -l nodes=1:ppn="$threads" -N QC_"$id"
+            echo "qc_trim_qc $id" | qsub -d $PWD -V -l nodes=1:ppn="$threads" -N QC_"$id"
         else
             echo "run on front end" 
             qc_trim_qc $id 2>> qc_trim_qc.log

@@ -7,7 +7,7 @@ function print_usage {
 usage:
 $ rnaseq-pipe INPUT_DIR INDEX_PREFIX GTF
         [--aligner=bwa-aln/bwa-mem/bowtie2/[hisat2]]
-        [-t/--threads=THREADS]
+        [-t/--threads THREADS]
         [--pbs]
 
 INPUT: 1. clean(trimmed) fastq.gz file
@@ -73,12 +73,12 @@ echo "    aligner: $aligner"
 echo "    threads: $threads"
 echo "    pbs: $pbs"
 
-input_dir=${input_dir//\'/}
-idx_prefix=${idx_prefix//\'/}
-gtf=${gtf//\'/}
-aligner=${aligner//\'/}
-threads=${threads//\'/}
-pbs=${pbs//\'/}
+export input_dir=${input_dir//\'/}
+export idx_prefix=${idx_prefix//\'/}
+export gtf=${gtf//\'/}
+export aligner=${aligner//\'/}
+export threads=${threads//\'/}
+export pbs=${pbs//\'/}
 
 ## END PARSE ARG
 

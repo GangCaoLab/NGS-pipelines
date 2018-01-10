@@ -11,6 +11,9 @@ from os.path import join
 import re
 import sys
 
+if sys.version_info < (3, 0, 0):
+    input = raw_input
+
 def print_usage():
     print(__doc__)
 
