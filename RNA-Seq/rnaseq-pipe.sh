@@ -174,6 +174,7 @@ function process_sam {
     echo "samtools sort"
     samtools view -bh $id.sam -o $id.bam
     samtools sort -@ $threads $id.bam -o $id.sorted.bam
+    samtools sort -n -@ $threads $id.bam -o $id.sorted.name.bam
 
     echo "[warning] remove sam and unsorted bam"
     rm $id.sam $id.bam
@@ -207,7 +208,7 @@ function pipe-front {
     bamCoverage -b $id.sorted.bam -o $id.bw 2>> $id.log
 
     echo "[htseq-count]" | tee -a $id.log
-    htseq-count -s no -r pos -f bam $id.sorted.bam $gtf > $id.count.txt 2>> $id.log
+    htseq-count -s no -r name -f bam $id.sorted.name.bam $gtf > $id.count.txt 2>> $id.log
 }
 
 
@@ -225,9 +226,9 @@ function pipe-pbs {
 
     qid_psam=$(echo "process_sam $id $threads" | qqsub -N PSAM_$id -W depend=afterok:$qid_align)
 
-    qid_genbw=$(echo "bamCoverage -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id -W depend=afterok:$qid_psam)
+    qid_genbw=$(echo "bamCoverage -p $threads -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id -W depend=afterok:$qid_psam)
 
-    qid_htc=$(echo "htseq-count -s no -r pos -f bam $id.sorted.bam $gtf > $id.count.txt" | qqsub -N HTC_$id -W depend=afterok:$qid_psam)
+    qid_htc=$(echo "htseq-count -s no -r name -f bam $id.sorted.name.bam $gtf > $id.count.txt" | qsub -l nodes=1:ppn=1 -d $PWD -N HTC_$id -W depend=afterok:$qid_psam)
 
 }
 
