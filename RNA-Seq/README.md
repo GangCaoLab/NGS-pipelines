@@ -30,10 +30,14 @@ The pipeline for RNA-Seq upstream data processing.
 ### Human
 * [hg19 fasta file](http://hgdownload.cse.ucsc.edu/goldenpath/hg19/chromosomes/)
 * hg19 gtf file: Export from [UCSC hgTables](http://genome.ucsc.edu/cgi-bin/hgTables)
+#### GENECODE
+Or you can choice download fasta and gtf files from [GENCODE](https://www.gencodegenes.org/releases/current.html)
 
 ### Mouse
 * [mm10](http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/)
 * gtf: same to hg19
+
+[GENCODE](https://www.gencodegenes.org/mouse_releases/current.html)
 
 ### MTB
 
@@ -96,4 +100,21 @@ $ bash rnaseq-pipe.sh clean/ /path/to/hisat-index/hg19 ./hg19.gtf \
 
 After all tasks done, you will get the gene counts files(*.count.txt) in your working directory.
 These files recorded the expression level of each gene of each samples.
-You can use them do futher downstream analyze.
+
+You can use [merge.sh](./merge.sh) merge them into one tab delimited file.
+
+```bash
+$ bash merge.sh *.count.txt > htseq-count.txt
+```
+
+### Normalization
+
+#### FPKM
+
+See the [definination by GDC](https://docs.gdc.cancer.gov/Data/Bioinformatics_Pipelines/Expression_mRNA_Pipeline/#mrna-expression-normalization)
+
+Normalization merged htseq-count table use the [normalization.py](./normalization.py) script.
+
+```bash
+$ python normalization.py htseq-count.txt hg19.gtf -m FPKM >  htseq-count-FPKM.txt
+```
