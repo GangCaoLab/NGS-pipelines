@@ -8,7 +8,7 @@ The pipeline for RNA-Seq upstream data processing.
 
 ## softwares
 
-### Quility control
+### Quality control
 
 * [Fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 * [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
@@ -57,7 +57,7 @@ ftp://ftp.ensemblgenomes.org/pub/bacteria/release-37/gff3/bacteria_0_collection/
 
 ## Commands and scripts usage example:
 
-### Quility control
+### Quality control
 
 Firstly, for make scripts work correctly, you should rename files name to correct format(like "SAMPLEID_R1.fastq.gz"). You can use the script: [rename.py](./scripts/rename.py) do this job quickly:
 
@@ -65,18 +65,18 @@ Firstly, for make scripts work correctly, you should rename files name to correc
 $ python rename.py raw_data_dir
 ```
 
-For ensure the quility of data, Fastqc should run on the raw data firstly.
+For ensure the quality of data, Fastqc should run on the raw data firstly.
 
 If FastQC report show there are adapter in the library, the raw data should process with adapter trimming software, for example Trimmomatic.
 
-The script [quility_control.sh](./scripts/quility_control.sh) integrated these steps. Run it like:
+The script [quality_control.sh](./scripts/quality_control.sh) integrated these steps. Run it like:
 
 ```bash
 $ # tell the script where the trimmomatic software and adapter fasta file are
 $ export trimmo_jar="/path/to/trimmomatic.jar"
 $ export adapter_fa="/path/to/adapter.fa" # maybe you will use 'TruSeq3-PE-2.fa' in the trimmomatic directory
 $ 
-$ bash quility_control.sh raw_data/ clean/ qc_reports/ \
+$ bash quality_control.sh raw_data/ clean/ qc_reports/ \
     --pbs \ # option for use pbs system
     --threads 5 # use 5 threads per sample
 ```

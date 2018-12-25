@@ -7,7 +7,7 @@ function print_usage {
 usage:
 $ export trimmo_jar="/path/to/trimmomatic.jar"
 $ export adapter_fa="/path/to/adapter.fa"
-$ quility_control RAW_DIR CLEAN_DIR QC_REPORT_DIR
+$ quality_control RAW_DIR CLEAN_DIR QC_REPORT_DIR
         [-t/--threads THREADS]
         [--pbs]
 
