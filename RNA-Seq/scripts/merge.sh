@@ -1,3 +1,5 @@
+#!/usr/env/bin bash -e
+
 files=$@
 
 echo -n -e 'gene\t'

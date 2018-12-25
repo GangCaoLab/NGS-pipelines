@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Simple script for rename the fastq.gz files to specific format.
 

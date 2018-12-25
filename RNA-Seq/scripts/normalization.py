@@ -1,3 +1,5 @@
+#!/usr/env/bin python
+
 """
 ## dependancy
 You should install pandas firstly:
