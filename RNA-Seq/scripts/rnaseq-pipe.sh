@@ -35,7 +35,7 @@ workdir="./"
 threads=4
 pbs=0 # `1` for use pbs system
 
-if ! options=$(getopt -o t:s:w:a: --long threads:,aligner:,pbs:,strandness:,workdir -- "$@"); then
+if ! options=$(getopt -o t:s:w:a: --long threads:,aligner:,strandness:,workdir:,pbs -- "$@"); then
     exit 1
 fi
 
