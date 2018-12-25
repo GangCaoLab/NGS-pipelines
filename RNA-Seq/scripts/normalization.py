@@ -54,7 +54,7 @@ if __name__ == "__main__":
         for line in f:
             if line.startswith("#"): # comment line
                 continue
-            items = line.split(sep="\t")
+            items = line.split("\t")
             name = get_gene_id(line)
             start, end = int(items[3]), int(items[4])
             tp = items[2]
