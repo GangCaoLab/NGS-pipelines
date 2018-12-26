@@ -234,7 +234,6 @@ function process_sam {
     echo "samtools sort"
     samtools view -bh $id.sam -o $id.bam
     samtools sort -@ $threads $id.bam -o $id.sorted.bam
-    samtools sort -n -@ $threads $id.bam -o $id.sorted.name.bam
 
     echo "[warning] remove sam and unsorted bam"
     rm $id.sam $id.bam
