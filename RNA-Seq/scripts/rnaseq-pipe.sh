@@ -249,6 +249,7 @@ function feature_count {
 
 export -f align
 export -f process_sam
+export -f feature_count
 
 
 function pipe-front {
