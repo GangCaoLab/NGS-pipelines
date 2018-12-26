@@ -10,6 +10,7 @@ $ rnaseq-pipe INPUT_DIR INDEX_PREFIX GTF
         [-t/--threads=THREADS]
         [-s/--strandness=no/[fr]/rf]
         [-w/--workdir=WORKDIR[./]]
+        [--steps=STEPS[1:2:3:4]]
         [--pbs]
 
 INPUT: 1. clean(trimmed) fastq.gz file
@@ -19,6 +20,12 @@ INPUT: 1. clean(trimmed) fastq.gz file
 OUTPUT: 1. sorted bam file
         2. count tables for each sample
         3. bigwig file
+
+STEPS: 1. align: alignment reads to reference genome, produce sam file.
+       2. process sam: convert to bam, and sort it.
+       3. bam coverage: convert bam file to bigwig file.
+       4. feature count: count reads of each genomic features(etc. genes, exons...),
+          produce counted text file.
 
 NOTE: 1. fastq should named as _R1.fastq.gz _R2.fastq.gz
       2. This pipeline only for pair-end library
@@ -32,10 +39,11 @@ EOF
 aligner=hisat2 # bowtie2 / bwa-aln / bwa-mem / hisat2
 strandness=fr
 workdir="./"
+steps="1:2:3:4"
 threads=4
 pbs=0 # `1` for use pbs system
 
-if ! options=$(getopt -o t:s:w:a: --long threads:,aligner:,strandness:,workdir:,pbs -- "$@"); then
+if ! options=$(getopt -o t:s:w:a:e: --long threads:,aligner:,strandness:,workdir:,steps:,pbs -- "$@"); then
     exit 1
 fi
 
@@ -63,6 +71,11 @@ while true ; do
                 "") shift 2 ;;
                 *) workdir=$2 ; shift 2 ;;
             esac ;;
+        -e|--steps)
+            case "$2" in
+                "") shift 2 ;;
+                *) steps=$2 ; shift 2 ;;
+            esac ;;
         --pbs) pbs=1 ; shift ;;
         --) shift ; break ;;
         *) print_usage ; exit 1 ;;
@@ -85,6 +98,7 @@ export gtf=${gtf//\'/}
 export aligner=${aligner//\'/}
 export strandness=${strandness//\'/}
 export workdir=${workdir//\'/}
+export steps=${steps//\'/}
 export threads=${threads//\'/}
 export pbs=${pbs//\'/}
 
@@ -94,6 +108,10 @@ idx_prefix=$(realpath ${idx_prefix})
 gtf=$(realpath ${gtf})
 workdir=$(realpath ${workdir})
 
+# process steps
+steps=$(echo ${steps} | sed 's/:/\ /g')
+steps=" "$steps
+
 # print parameters
 echo "start pipeline with parameters:"
 echo "    INPUT_DIR: $input_dir"
@@ -102,6 +120,7 @@ echo "    GTF: $gtf"
 echo "    aligner: $aligner"
 echo "    strandness: $strandness"
 echo "    workdir: $workdir"
+echo "    steps: $steps"
 echo "    threads: $threads"
 echo "    pbs: $pbs"
 
@@ -263,17 +282,25 @@ function pipe-front {
 
     id=$1
 
-    echo "[alignment]" | tee -a $id.log
-    align $id $input_dir $aligner $idx_prefix $strandness $threads 2>> $id.log
+    if [[ ${steps} = *" 1"* ]]; then
+        echo "[alignment]" | tee -a $id.log
+        align $id $input_dir $aligner $idx_prefix $strandness $threads 2>> $id.log
+    fi
 
-    echo "[processing sam]" | tee -a $id.log
-    process_sam $id $threads 2>> $id.log
+    if [[ ${steps} = *" 2"* ]]; then
+        echo "[processing sam]" | tee -a $id.log
+        process_sam $id $threads 2>> $id.log
+    fi
 
-    echo "[generate bigwig file]" | tee -a $id.log
-    bamCoverage -b $id.sorted.bam -o $id.bw 2>> $id.log
+    if [[ ${steps} = *" 3"* ]]; then
+        echo "[generate bigwig file]" | tee -a $id.log
+        bamCoverage -b $id.sorted.bam -o $id.bw 2>> $id.log
+    fi
 
-    echo "[htseq-count]" | tee -a $id.log
-    feature_count $id $gtf $strandness 2>> $id.log
+    if [[ ${steps} = *" 4"* ]]; then
+        echo "[htseq-count]" | tee -a $id.log
+        feature_count $id $gtf $strandness 2>> $id.log
+    fi
 }
 
 
