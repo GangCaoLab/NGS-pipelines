@@ -324,7 +324,7 @@ function pipe-pbs {
         qid_align=$(echo "align $id $input_dir $aligner $idx_prefix $strandness $threads" | qqsub -N ALIGN_$id)
         qid_psam=$(echo "process_sam $id $threads" | qqsub -N PSAM_$id -W depend=afterok:$qid_align)
         qid_genbw=$(echo "bamCoverage -p $threads -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id -W depend=afterok:$qid_psam)
-        qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -l nodes=1:ppn=1 -d $PWD -N HTC_$id -W depend=afterok:$qid_psam)
+        qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id -W depend=afterok:$qid_psam)
     else
         # re run steps, no dependency
         if [[ ${steps} = *" 1"* ]]; then
@@ -337,7 +337,7 @@ function pipe-pbs {
             qid_genbw=$(echo "bamCoverage -p $threads -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id)
         fi
         if [[ ${steps} = *" 4"* ]]; then
-            qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -l nodes=1:ppn=1 -d $PWD -N HTC_$id)
+            qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id)
         fi
     fi
 
