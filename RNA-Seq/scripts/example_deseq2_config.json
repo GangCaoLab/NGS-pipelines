@@ -1,0 +1,5 @@
+{
+    "samples": ["lyy_10_L04_59", "lyy_10_L04_60", "lyy_11_L04_61", "lyy_11_L04_62", "lyy_12_L04_63", "lyy_12_L04_64"],
+    "conditions": ["ctl", "ctl", "exp1", "exp1", "exp2", "exp2"],
+    "comparisons": [["ctl", "exp1"], ["ctl", "exp2"]]
+}
