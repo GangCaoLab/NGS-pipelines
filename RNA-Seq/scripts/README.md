@@ -29,7 +29,7 @@ All scripts tested under Python3.6, but also try to compatible with Python2.7
 
 ```bash
 conda install --yes numpy scipy pandas matplotlib seaborn scikit-learn click
-conda install --yes -c bioconda pybigwig
+conda install --yes -c bioconda pybigwig deeptools
 ```
 
 Install R environment and packages:
