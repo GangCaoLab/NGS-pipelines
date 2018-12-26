@@ -319,7 +319,7 @@ function pipe-pbs {
         qsub -V -l nodes=1:ppn="$threads" -d $PWD $@
     }
 
-    if [[ $(number_steps) = 4]]; then
+    if [[ $(number_steps) = 4 ]]; then
         # run full pipeline
         qid_align=$(echo "align $id $input_dir $aligner $idx_prefix $strandness $threads" | qqsub -N ALIGN_$id)
         qid_psam=$(echo "process_sam $id $threads" | qqsub -N PSAM_$id -W depend=afterok:$qid_align)
