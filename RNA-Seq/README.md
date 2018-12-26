@@ -33,13 +33,13 @@ The pipeline for RNA-Seq upstream data processing.
 * [hg19 fasta file](http://hgdownload.cse.ucsc.edu/goldenpath/hg19/chromosomes/)
 * hg19 gtf file: Export from [UCSC hgTables](http://genome.ucsc.edu/cgi-bin/hgTables)
 #### GENCODE
-Or you can choice download fasta and gtf files from [GENCODE](https://www.gencodegenes.org/releases/current.html)
+Or you can choice download fasta and gtf files from [GENCODE](https://www.gencodegenes.org/human/)
 
 ### Mouse
 * [mm10](http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/)
 * gtf: same to hg19
 
-[GENCODE](https://www.gencodegenes.org/mouse_releases/current.html)
+[GENCODE](https://www.gencodegenes.org/mouse/)
 
 ### MTB
 
