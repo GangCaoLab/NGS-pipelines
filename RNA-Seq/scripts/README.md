@@ -17,10 +17,10 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 ```
 
-Install aligner, samtools, htseq:
+Install aligner, samtools ...:
 
 ``` bash
-conda install --yes -c bioconda samtools hisat2 htseq
+conda install --yes -c bioconda samtools hisat2 subread
 ```
 
 Install Python packages:
