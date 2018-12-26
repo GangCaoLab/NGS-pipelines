@@ -8,7 +8,7 @@ usage:
 $ rnaseq-pipe INPUT_DIR INDEX_PREFIX GTF
         [--aligner=bwa-aln/bwa-mem/bowtie2/[hisat2]]
         [-t/--threads=THREADS]
-        [-s/--strandness=no/[fr]/rf]
+        [-s/--strandness=[no]/fr/rf]
         [-w/--workdir=WORKDIR[./]]
         [--steps=STEPS[1:2:3:4]]
         [--pbs]
@@ -37,7 +37,7 @@ EOF
 
 # default arguments
 aligner=hisat2 # bowtie2 / bwa-aln / bwa-mem / hisat2
-strandness=fr
+strandness=no
 workdir="./"
 steps="1:2:3:4"
 threads=4
@@ -246,7 +246,7 @@ function process_sam {
 function feature_count {
     # [count] reads mapped to genomic features
     
-    # usage: feature_count ID GTF STRANDNESS
+    # usage: feature_count ID GTF STRANDNESS THREADS
     # INPUT: bam file (ID.bam)
     # OUTPUT: gene count list(ID.count.txt)
     # NOTE: bam file should sorted by name
@@ -254,15 +254,16 @@ function feature_count {
     id=$1
     gtf=$2
     strandness=$3
+    threads=$4
 
-    echo "htseq count ${id}"
     if [ ${strandness} == "fr" ]; then
-        htseq-count -s yes -r name -f bam $id.sorted.name.bam $gtf > $id.count.txt
+        featureCounts -T ${threads} -a ${gtf} -o ${id}.count.txt.full $id.sorted.bam -t exon -g gene_id -p -s 1
     elif [ ${strandness} == "rf" ]; then
-        htseq-count -s reverse -r name -f bam $id.sorted.name.bam $gtf > $id.count.txt
+        featureCounts -T ${threads} -a ${gtf} -o ${id}.count.txt.full $id.sorted.bam -t exon -g gene_id -p -s 2
     else
-        htseq-count -s no -r name -f bam $id.sorted.name.bam $gtf > $id.count.txt
+        featureCounts -T ${threads} -a ${gtf} -o ${id}.count.txt.full $id.sorted.bam -t exon -g gene_id -p -s 0
     fi
+    cat ${id}.count.txt.full | sed 1,2d | awk 'BEGIN{OFS="\t"}{print $1,$7}' | sort > ${id}.count.txt
 }
 
 
@@ -298,8 +299,8 @@ function pipe-front {
     fi
 
     if [[ ${steps} = *" 4"* ]]; then
-        echo "[htseq-count]" | tee -a $id.log
-        feature_count $id $gtf $strandness 2>> $id.log
+        echo "[feature counts]" | tee -a $id.log
+        feature_count $id $gtf $strandness $threads 2>> $id.log
     fi
 }
 
@@ -324,7 +325,7 @@ function pipe-pbs {
         qid_align=$(echo "align $id $input_dir $aligner $idx_prefix $strandness $threads" | qqsub -N ALIGN_$id)
         qid_psam=$(echo "process_sam $id $threads" | qqsub -N PSAM_$id -W depend=afterok:$qid_align)
         qid_genbw=$(echo "bamCoverage -p $threads -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id -W depend=afterok:$qid_psam)
-        qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id -W depend=afterok:$qid_psam)
+        qid_htc=$(echo "feature_count $id $gtf $strandness $threads" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id -W depend=afterok:$qid_psam)
     else
         # re run steps, no dependency
         if [[ ${steps} = *" 1"* ]]; then
@@ -337,7 +338,7 @@ function pipe-pbs {
             qid_genbw=$(echo "bamCoverage -p $threads -b $id.sorted.bam -o $id.bw" | qqsub -N GENBW_$id)
         fi
         if [[ ${steps} = *" 4"* ]]; then
-            qid_htc=$(echo "feature_count $id $gtf $strandness" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id)
+            qid_htc=$(echo "feature_count $id $gtf $strandness $threads" | qsub -V -l nodes=1:ppn=1 -d $PWD -N HTC_$id)
         fi
     fi
 
