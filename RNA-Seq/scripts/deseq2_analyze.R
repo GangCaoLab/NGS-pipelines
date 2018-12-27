@@ -32,6 +32,37 @@ read.config <- function(path) {
 }
 
 
+plot.pca <- function(dds, fig.path) {
+    library(ggplot2)
+    rld <- rlog(dds)
+    data.pca <- plotPCA(rld, intgroup=c("condition", "name"), returnData=TRUE)
+    percentVar <- round(100 * attr(data.pca, "percentVar"))
+    fig.pca <- ggplot(data.pca, aes(PC1, PC2, color=condition, shape=name)) +
+        scale_shape_manual(values=seq(0,15)) +
+        geom_point(size=5) +
+        xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+        ylab(paste0("PC2: ",percentVar[2],"% variance")) 
+    ggsave(fig.path)
+}
+
+
+plot.heatmap <- function(dds, fig.path, row.num) {
+    if (missing(row.num)) {
+        row.num <- 1000
+    }
+    library("pheatmap")
+    dds <- estimateSizeFactors(dds)
+    select <- order( rowMeans( counts(dds, normalized=TRUE) ), decreasing=TRUE )[1:row.num]
+    nt <- normTransform(dds) # defaults to log2(x+1)
+    log2.norm.counts <- assay(nt)[select,]
+    df <- as.data.frame(colData(dds)[,c("name","condition")])
+    pdf(fig.path, width = 6, height = 7)
+        pheatmap(log2.norm.counts, cluster_rows=TRUE, show_rownames=FALSE,
+        cluster_cols=TRUE, annotation_col=df)
+    dev.off()
+}
+
+
 main <- function() {
 
     # Parse arguments
@@ -69,74 +100,49 @@ main <- function() {
     echo("Shape of expression table subset:")
     echo(dim(exptable))
 
+    # convert to DESeq DataSet
+    library(DESeq2)
+    table.condition <- data.frame(name = colnames(exptable), condition=config$conditions)
+    rownames(table.condition) <- table.condition$name
+    dds <- DESeqDataSetFromMatrix(exptable, colData=table.condition, design= ~ condition)
+    dds <- dds[ rowSums(counts(dds)) > 1, ] # filter out the zero count genes
+
+    # output normalized counts
+    dds <- estimateSizeFactors(dds)
+    counts.normalized <- counts(dds, normalized=TRUE)
+    write.table(counts.normalized, "./normalized_counts.tsv", col.names=NA, row.names=TRUE, sep="\t", quote=FALSE)
+
+    # PCA plot
+    plot.pca(dds, "pca.pdf")
+
+    # plot heatmap
+    plot.heatmap(dds, "heatmap.pdf")
+
+    # DESeq analyze
+    dds <- DESeq(dds)
+    deseq.analyze <- function(compare) {
+        results(dds, contrast=c("condition", compare[2], compare[1]))
+    }
+    deseq.results <- lapply(config$comparisons, deseq.analyze)
+    deseq.save <- function(idx) {
+        compare.name <- paste(config$comparisons[[idx]], collapse="-")
+        out.filename <- paste(compare.name, ".tsv", sep="")
+        write.table(deseq.results[idx], out.filename,
+                                        col.names=NA, row.names=TRUE, sep="\t",
+                                        quote=FALSE)
+    }
+    save_ <- lapply(seq_along(deseq.results), deseq.save)
+
+    # plot MA
+    library(geneplotter)
+    plot.MA <- function(idx) {
+        compare.name <- paste(config$comparisons[[idx]], collapse="-")
+        fig.path <- paste("MA_", compare.name, ".pdf", sep="")
+        pdf(fig.path)
+            plotMA(deseq.results[[idx]], main="DESeq2 MA plot")
+        dev.off()
+    }
+    plot_ <- lapply(seq_along(deseq.results), plot.MA)
 }
 
 main()
-
-
-#library(DESeq2)
-
-#condition <- c(rep("bend3 day0 uninfect", 2), rep("bend3 day0 infect", 2), 
-#               rep("bend3 day3 uninfect", 2), rep("bend3 day3 infect", 2),
-#               rep("raw day0 uninfect", 2), rep("raw day0 infect", 2),
-#               rep("raw day3 uninfect", 2), rep("raw day3 infect", 2))
-#table.condition <- data.frame(name = colnames(merged), condition = condition)
-#rownames(table.condition) <- table.condition$name
-#
-## translate to deseq2 data format.
-#dds <- DESeqDataSetFromMatrix(merged, colData=table.condition, design= ~ condition)
-#dds <- dds[ rowSums(counts(dds)) > 1, ] # filter out the zero count genes
-#
-## do PCA analyze
-#library(ggplot2)
-#rld <- rlog(dds)
-## plot 
-#data.pca <- plotPCA(rld, intgroup=c("condition", "name"), returnData=TRUE)
-#percentVar <- round(100 * attr(data.pca, "percentVar"))
-#fig.pca <- ggplot(data.pca, aes(PC1, PC2, color=condition, shape=name)) +
-#    scale_shape_manual(values=seq(0,15)) +
-#    geom_point(size=5) +
-#    xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-#    ylab(paste0("PC2: ",percentVar[2],"% variance")) 
-#ggsave("pca.pdf")
-#
-## DE analyze
-#library(DESeq)
-#dds <- DESeq(dds)
-#infect_bend3d3 <- results(dds, contrast=c("condition", "bend3 day3 uninfect", "bend3 day3 infect"))
-#infect_rawd0   <- results(dds, contrast=c("condition", "raw day0 uninfect", "raw day0 infect"))
-#infect_bend3d0 <- results(dds, contrast=c("condition", "bend3 day0 uninfect", "bend3 day0 infect"))
-#infect_rawd3   <- results(dds, contrast=c("condition", "raw day3 uninfect", "raw day3 infect"))
-#time_bend3  <- results(dds, contrast=c("condition", "bend3 day0 infect", "bend3 day3 infect"))
-#time_bend3u <- results(dds, contrast=c("condition", "bend3 day0 uninfect", "bend3 day3 uninfect"))
-#time_raw    <- results(dds, contrast=c("condition", "raw day0 infect", "raw day3 infect"))
-#time_rawu   <- results(dds, contrast=c("condition", "raw day0 uninfect", "raw day3 uninfect"))
-#list.res <- list(infect_bend3d3, infect_rawd0, infect_bend3d0, infect_rawd3, 
-#                 time_bend3, time_bend3u, time_raw, time_rawu)
-#names <- c("infect_bend3d3", "infect_rawd0", "infect_bend3d0", "infect_rawd3",
-#           "time_bend3", "time_bend3u", "time_raw", "time_rawu")
-#
-#lapply(seq_along(list.res),
-#       function(x) write.table(list.res[[x]], paste(names[x], ".txt", sep=""),
-#                                         col.names=TRUE, row.names=TRUE, sep="\t",
-#                                         quote=FALSE))
-#
-## plot MA
-#library(geneplotter)
-#lapply(seq_along(list.res),
-#        function(x) {
-#            pdf(paste("MA_", names[x], ".pdf", sep=""))
-#            plotMA(list.res[[x]], main="DESeq2")
-#            dev.off()
-#        })
-#
-## plot Heatmap
-#library("pheatmap")
-#select <- order(rowMeans(counts(dds,normalized=TRUE)),decreasing=TRUE)[1:1000]
-#nt <- normTransform(dds) # defaults to log2(x+1)
-#log2.norm.counts <- assay(nt)[select,]
-#df <- as.data.frame(colData(dds)[,c("name","condition")])
-#pdf('heatmap1000.pdf',width = 6, height = 7)
-#pheatmap(log2.norm.counts, cluster_rows=TRUE, show_rownames=FALSE,
-#cluster_cols=TRUE, annotation_col=df)
-#dev.off()

@@ -36,6 +36,6 @@ Install R environment and packages:
 
 ```bash
 conda install --yes -c r r-essentials
-conda install --yes -c bioconda bioconductor-deseq2 bioconductor-clusterprofiler
-conda install --yes -c r r-rjson
+conda install --yes -c r r-rjson r-ggplot2
+conda install --yes -c bioconda bioconductor-deseq2 bioconductor-clusterprofiler bioconductor-geneplotter r-pheatmap
 ```
